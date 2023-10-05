@@ -1,6 +1,6 @@
 {
   "name": "connectfourai",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An efficient and powerful connect four AI.",
   "main": "connect-four.js",
   "scripts": {
