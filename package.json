@@ -1,7 +1,7 @@
 {
   "name": "connectfourai",
   "version": "1.0.2",
-  "description": "An efficient and powerful connect four AI.",
+  "description": "A customizable, powerful, and efficient connect four AI.",
   "main": "connect-four.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
