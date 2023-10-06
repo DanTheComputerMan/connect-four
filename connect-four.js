@@ -226,7 +226,7 @@ function set(prop, value) {
             break;
     }
     CONFIG[prop] = value;
-    // QOL feature.
+    // QOL feature to create a new board with the new settings.
     if ((BOARD[CONFIG.rows] || [ EMPTY ]).every(c => c === EMPTY)) new_game();
 }
 
