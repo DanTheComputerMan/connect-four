@@ -103,7 +103,7 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 		}
 	}
 	if (maximizingPlayer) {
-		let _value = -Infinity, _column = 0;
+		let _column = 0, _value = -Infinity;
 		for (let col of _validLocations) {
 			let _copy = board.map((a) => a.slice());
 			
@@ -119,7 +119,7 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 		}
 		return [ _column, _value ];
 	} else {
-		let _value = Infinity, _column = 0;
+		let _column = 0, _value = Infinity;
 		for (let col of _validLocations) {
 			let _copy = board.map((a) => a.slice());
 			
@@ -250,11 +250,13 @@ function set_player_piece(piece) {
 
 function set_pos(position) { // e.g. "2,7,2,1,2,4,5,5,3,5,5,6"
 	let _pieces = position.split(","), _t = TURN;
+	new_game();
 	
 	if (_pieces.length > CONFIG.columns * CONFIG.rows) return false;
 	
 	for (let char = 0; char < _pieces.length; char++) {
-		play(BOARD, _pieces[+char] - 1, _t);
+		play(BOARD, +_pieces[char] - 1, _t);
+		GAME.history.push({ column: +_pieces[char], piece: _t });
 		_t = (_t === AIP) ? PLP : AIP;
 	}
 	return true;

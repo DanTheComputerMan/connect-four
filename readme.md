@@ -41,7 +41,7 @@ For information on the state of the game.
 COLORS                          // A collection of unicode colors to choose from.
 COLORS.blue                     // One example.
 GAME.full                       // If the board is full.
-GAME.history					// A history of moves played so far. Format is { column: 3, piece: "🟡" }
+GAME.history                    // A history of moves played so far. Format is { column: 3, piece: "🟡" }
 GAME.over                       // If the game is over (full or someone won).
 GAME.victor or GAME.winner      // Who won the game.
 GAME.won                        // If someone won the game.
