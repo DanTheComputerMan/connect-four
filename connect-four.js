@@ -263,28 +263,77 @@ function winning_move(board, piece) {
     for (let col = 0; col < CONFIG.columns - CONFIG.length; col++) {
         for (let row = 0; row < CONFIG.rows; row++) {
 			if (board[row][col] !== piece) continue;
-            if (board[row][col] === board[row][col + 1] && board[row][col + 1] === board[row][col + 2] && board[row][col + 2] === board[row][col + 3]) return true;
+            // Optimization for most common connect lengths.
+            if (CONFIG.length === 4) {
+                if (board[row][col] === board[row][col + 1] && board[row][col + 1] === board[row][col + 2] && board[row][col + 2] === board[row][col + 3]) return true;
+            } else if (CONFIG.length === 5) {
+                if (board[row][col] === board[row][col + 1] && board[row][col + 1] === board[row][col + 2] && board[row][col + 2] === board[row][col + 3] && board[row][col + 3] === board[row][col + 4]) return true;
+            } else if (CONFIG.length === 3) {
+                if (board[row][col] === board[row][col + 1] && board[row][col + 1] === board[row][col + 2]) return true;
+            } else {
+                let _pieces = [];
+                for (let i = 0; i < CONFIG.length; i++) {
+                	_pieces.push(board[row][col + i]);
+                }
+                if (_pieces.every(p => p === _pieces[0])) return true;
+            }
         }
     }
     // Vertical
     for (let col = 0; col < CONFIG.columns; col++) {
         for (let row = 0; row <= CONFIG.rows - CONFIG.length; row++) {
 			if (board[row][col] !== piece) continue;
-            if (board[row][col] === board[row + 1][col] && board[row + 1][col] === board[row + 2][col] && board[row + 2][col] === board[row + 3][col]) return true;
+            if (CONFIG.length === 4) {
+                if (board[row][col] === board[row + 1][col] && board[row + 1][col] === board[row + 2][col] && board[row + 2][col] === board[row + 3][col]) return true;
+            } else if (CONFIG.length === 5) {
+                if (board[row][col] === board[row + 1][col] && board[row + 1][col] === board[row + 2][col] && board[row + 2][col] === board[row + 3][col] && board[row + 3][col] === board[row + 4][col]) return true;
+            } else if (CONFIG.length === 3) {
+                if (board[row][col] === board[row + 1][col] && board[row + 1][col] === board[row + 2][col]) return true;
+            } else {
+                let _pieces = [];
+                for (let i = 0; i < CONFIG.length; i++) {
+                	_pieces.push(board[row + i][col]);
+                }
+                if (_pieces.every(p => p === _pieces[0])) return true;
+            }
         }
     }
     // Negative Diagonal \
     for (let row = 0; row <= CONFIG.rows - CONFIG.length; row++) {
         for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 			if (board[row][col] !== piece) continue;
-            if (board[row][col] === board[row + 1][col + 1] && board[row + 1][col + 1] === board[row + 2][col + 2] && board[row + 2][col + 2] === board[row + 3][col + 3]) return true;
+            if (CONFIG.length === 4) {
+                if (board[row][col] === board[row + 1][col + 1] && board[row + 1][col + 1] === board[row + 2][col + 2] && board[row + 2][col + 2] === board[row + 3][col + 3]) return true;
+            } else if (CONFIG.length === 5) {
+                if (board[row][col] === board[row + 1][col + 1] && board[row + 1][col + 1] === board[row + 2][col + 2] && board[row + 2][col + 2] === board[row + 3][col + 3] && board[row + 3][col + 3] === board[row + 4][col + 4]) return true;
+            } else if (CONFIG.length === 3) {
+                if (board[row][col] === board[row + 1][col + 1] && board[row + 1][col + 1] === board[row + 2][col + 2]) return true;
+            } else {
+                let _pieces = [];
+                for (let i = 0; i < CONFIG.length; i++) {
+                	_pieces.push(board[row + i][col + i]);
+                }
+                if (_pieces.every(p => p === _pieces[0])) return true;
+            }
         }
     }
     // Positive Diagonal /
     for (let row = CONFIG.length - 1; row < CONFIG.rows; row++) {
         for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 			if (board[row][col] !== piece) continue;
-            if (board[row][col] === board[row - 1][col + 1] && board[row - 1][col + 1] === board[row - 2][col + 2] && board[row - 2][col + 2] === board[row - 3][col + 3]) return true;
+            if (CONFIG.length === 4) {
+                if (board[row][col] === board[row - 1][col + 1] && board[row - 1][col + 1] === board[row - 2][col + 2] && board[row - 2][col + 2] === board[row - 3][col + 3]) return true;
+            } else if (CONFIG.length === 5) {
+                if (board[row][col] === board[row - 1][col + 1] && board[row - 1][col + 1] === board[row - 2][col + 2] && board[row - 2][col + 2] === board[row - 3][col + 3] && board[row - 3][col + 3] === board[row - 4][col + 4]) return true;
+            } else if (CONFIG.length === 3) {
+                if (board[row][col] === board[row - 1][col + 1] && board[row - 1][col + 1] === board[row - 2][col + 2]) return true;
+            } else {
+                let _pieces = [];
+                for (let i = 0; i < CONFIG.length; i++) {
+                	_pieces.push(board[row - i][col + i]);
+                }
+                if (_pieces.every(p => p === _pieces[0])) return true;
+            }
         }
     }
     return false;
@@ -293,8 +342,7 @@ function winning_move(board, piece) {
 new_game();
 
 module.exports = {
-    can_play, display_board, evaluate_window, get_valid_locations, is_terminal_node, 
-    minimax, new_game, play_ai, play_human, score_position, 
-    set, set_ai_piece, set_empty_piece, set_player_piece, set_pos, 
-    winning_move, 
+    can_play, display_board, get_valid_locations, new_game, play_ai, 
+    play_human, set, set_ai_piece, set_empty_piece, set_player_piece, 
+    set_pos, 
 };
