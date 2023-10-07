@@ -69,6 +69,10 @@ function evaluate_window(window, piece) {
 	return _score;
 }
 
+function get_pos() {
+	return GAME.history.map(move => move.column).join(",");
+}
+
 function get_valid_locations(board) {
 	// Move-order optimization for improved alpha beta pruning. Explores center column outwards.
 	let _validLocations = [], _middle = Math.floor(_validLocations.length / 2);
@@ -125,7 +129,7 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 				_value = _newScore;
 				_column = col;
 			}
-			beta = Math.min(v_alue, beta);
+			beta = Math.min(_value, beta);
 			if (alpha >= beta) break;
 		}
 		return [ _column, _value ];
@@ -340,7 +344,7 @@ function winning_move(board, piece) {
 new_game();
 
 module.exports = {
-	can_play, display_board, get_valid_locations, new_game, play_ai, 
-	play_human, set, set_ai_piece, set_empty_piece, set_player_piece, 
-	set_pos, 
+	can_play, display_board, get_pos, get_valid_locations, new_game, 
+	play_ai, play_human, set, set_ai_piece, set_empty_piece, 
+	set_player_piece, set_pos, 
 };

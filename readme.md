@@ -68,4 +68,7 @@ AI.set("length", 5);            // Minimum 3
 
 // You can setup a specific position. The board is setup by placing a piece in each column, from left-to-right.
 AI.set_pos("4,4,4,4,4,3,3,3,6");
+
+// Get the current position.
+AI.get_pos();
 ```
