@@ -34,7 +34,6 @@ COLORS = {
 	yellow: "🟡",
 }, GAME = new Proxy(GAMESTATE, handler);
 
-
 const AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP;
 
 let BOARD = [[]];
@@ -70,12 +69,12 @@ function evaluate_window(window, piece) {
 }
 
 function get_valid_locations(board) {
-	let validLocations = [];
+	// Move-order optimization for improved alpha beta pruning. Explores center column outwards.
+	let validLocations = [], middle = Math.floor(validLocations.length / 2);
 	for (let col = 0; col < CONFIG.columns; col++) {
 		if (board[0][col] === EMPTY) validLocations.push(col);
 	}
-	// Move-order optimization for improved alpha beta pruning. Explores center column outwards.
-	let middle = Math.floor(validLocations.length / 2);
+	
 	return validLocations.sort((a, b) => Math.abs(a - middle) - Math.abs(b - middle));
 }
 
@@ -165,8 +164,8 @@ function score_position(board, piece) {
 	let score = 0;
 	
 	// Score center column
-	let centeredArray = board.map(p => parseInt(p[Math.floor(CONFIG.columns / 2)]));
-	let centeredCount = centeredArray.filter(p => p === piece).length;
+	let centeredArray = board.map(p => parseInt(p[Math.floor(CONFIG.columns / 2)])), 
+		centeredCount = centeredArray.filter(p => p === piece).length;
 	score += 3 * centeredCount;
 	
 	// Horizontal
@@ -228,9 +227,7 @@ function set(prop, value) {
 }
 
 function set_ai_piece(piece) {
-	let _turn = AIP;
 	AIP = piece;
-	if (_turn === TURN) TURN = AIP;
 }
 
 function set_empty_piece(piece) {
@@ -238,9 +235,7 @@ function set_empty_piece(piece) {
 }
 
 function set_player_piece(piece) {
-	let _turn = PLP;
 	PLP = piece;
-	if (_turn === TURN) TURN = PLP;
 }
 
 function set_pos(position) { // e.g. "2,7,2,1,2,4,5,5,3,5,5,6"
@@ -249,7 +244,6 @@ function set_pos(position) { // e.g. "2,7,2,1,2,4,5,5,3,5,5,6"
 	let _t = TURN;
 	for (let char = 0; char < _pieces.length; char++) {
 		play(BOARD, _pieces[+char] - 1, _t);
-		// _t = +!_t;
 		_t = (_t === AIP) ? PLP : AIP;
 	}
 	return true;
