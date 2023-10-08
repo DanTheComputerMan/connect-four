@@ -1,5 +1,6 @@
 const GAMESTATE = {}, CONFIG = {
 	columns: 7, 
+	depth: 9, 
 	history: [], 
 	length: 4, 
 	rows: 6,
@@ -9,7 +10,7 @@ const GAMESTATE = {}, CONFIG = {
 			case "full":
 				return !BOARD[0].some(c => c === EMPTY);
 			case "over":
-				return target["full"] || target["won"];
+				return GAME.full || GAME.won;
 			case "victor":
 			case "winner":
 				if (winning_move(BOARD, AIP)) return AIP;
@@ -35,9 +36,7 @@ COLORS = {
 	yellow: "🟡",
 }, GAME = new Proxy(GAMESTATE, handler);
 
-const AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP;
-
-let BOARD = [[]];
+let AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP, BOARD = [[]];
 
 function can_play(column) {
 	return BOARD[0][column] === EMPTY;
@@ -70,7 +69,7 @@ function evaluate_window(window, piece) {
 }
 
 function get_pos() {
-	return GAME.history.map(move => move.column).join(",");
+	return GAME.history.map(move => move.column + 1).join(",");
 }
 
 function get_valid_locations(board) {
@@ -141,25 +140,43 @@ function new_game() {
 	GAME.history = [];
 }
 
-function play(board, col, piece) {
-	if (board[0][col] !== EMPTY) return false;
+function get_best_move(depth=CONFIG.depth) {
+	if (depth < 1) return undefined;
+	return minimax(BOARD, depth, -Infinity, Infinity, true)[0];
+}
+
+function get_next_row(board, col) {
 	for (let row = CONFIG.rows - 1; row >= 0; row--) {
-		if (board[row][col] === EMPTY) {
-			board[row][col] = piece;
-			return true;
-		}
+		if (board[row][col] === EMPTY) return row;
 	}
 }
 
-function play_ai(col=false, depth=7) { 
-	if (col) return play(BOARD, col, AIP);
+function play(board, col, piece) {
+	if (board[0][col] !== EMPTY) return false;
+	var _row = get_next_row(board, col);
+	board[_row][col] = piece;
+	return true;
+	// for (let row = CONFIG.rows - 1; row >= 0; row--) {
+	// 	if (board[row][col] === EMPTY) {
+	// 		board[row][col] = piece;
+	// 		return true;
+	// 	}
+	// }
+}
+
+function play_ai(col=false, depth=CONFIG.depth) { 
+	// if (col || col === 0) return play(BOARD, col, AIP);
+	if (col >= CONFIG.columns || depth < 1) return false;
+	var _row = get_next_row(BOARD, col || 0);
+	if (col || col === 0) return BOARD[_row][col] = AIP;
 	
 	let _col = minimax(BOARD, depth, -Infinity, Infinity, true)[0];
 	GAME.history.push({ column: _col, piece: AIP });
-	return play(BOARD, col, AIP);
+	return play(BOARD, _col, AIP);
 }
 
 function play_human(col) { 
+	if (col >= CONFIG.columns) return false;
 	if (BOARD[0][col] !== EMPTY) return false;
 	for (let row = CONFIG.rows - 1; row >= 0; row--) {
 		if (BOARD[row][col] === EMPTY) {
@@ -226,6 +243,9 @@ function set(prop, value) {
 		case "columns":
 		case "rows":
 			if (!Number.isInteger(value) || value < 3 || value < CONFIG.length) return false;
+			break;
+		case "depth":
+			if (!Number.isInteger(value) || value < 1) return false;
 			break;
 		case "length":
 			if (!Number.isInteger(value) || value < 3 || value < CONFIG.rows || value < CONFIG.columns) return false;
@@ -348,5 +368,5 @@ new_game();
 module.exports = {
 	can_play, display_board, get_pos, get_valid_locations, new_game, 
 	play_ai, play_human, set, set_ai_piece, set_empty_piece, 
-	set_player_piece, set_pos, 
+	set_player_piece, set_pos, get_best_move
 };
