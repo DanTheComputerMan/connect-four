@@ -56,7 +56,7 @@ function evaluate_window(window, piece) {
 		let _windowSize = 1;
 		while(_windowSize <= CONFIG.length - 2) { // Score connect 2s at the smallest.
 			if (_numConnected === CONFIG.length - _windowSize && _numEmpty === _windowSize) {
-				_score += 2.5 * _windowSize;
+				_score += 3 * _windowSize;
 			}
 			if (_numOpponentConnected === CONFIG.length - _windowSize && _numEmpty === _windowSize) {
 				_score -= 2 * _windowSize;
