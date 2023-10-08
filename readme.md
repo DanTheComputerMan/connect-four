@@ -36,7 +36,7 @@ AI.get_valid_locations();
 
 // To see which column is the best for a human to play. Can be used as a hint.
 AI.get_best_move();
-AI.get_best_move(9); /* You can specify a depth as well */
+AI.get_best_move(5); /* You can specify a depth as well */
 ```
 
 # **Built-in variables**
@@ -68,7 +68,7 @@ AI.set_empty_piece(COLORS.green);
 // You can change the rows, columns, and even the connect length.
 AI.set("columns", 10);          // Minimum 3
 AI.set("rows", 9);              // Minimum 3
-AI.set("depth", 5);             // Minimum 1, default 9. Used here to not specify later.
+AI.set("depth", 5);             // Minimum 1, default 9. Change here to not have to specify as an argument.
 AI.set("length", 5);            // Minimum 3
 
 // You can setup a specific position. The board is setup by placing a piece in each column, from left-to-right.
