@@ -153,22 +153,13 @@ function get_next_row(board, col) {
 
 function play(board, col, piece) {
 	if (board[0][col] !== EMPTY) return false;
-	var _row = get_next_row(board, col);
-	board[_row][col] = piece;
+	board[get_next_row(board, col)][col] = piece;
 	return true;
-	// for (let row = CONFIG.rows - 1; row >= 0; row--) {
-	// 	if (board[row][col] === EMPTY) {
-	// 		board[row][col] = piece;
-	// 		return true;
-	// 	}
-	// }
 }
 
 function play_ai(col=false, depth=CONFIG.depth) { 
-	// if (col || col === 0) return play(BOARD, col, AIP);
 	if (col >= CONFIG.columns || depth < 1) return false;
-	var _row = get_next_row(BOARD, col || 0);
-	if (col || col === 0) return BOARD[_row][col] = AIP;
+	if (col || col === 0) return play(BOARD, col, AIP);
 	
 	let _col = minimax(BOARD, depth, -Infinity, Infinity, true)[0];
 	GAME.history.push({ column: _col, piece: AIP });
