@@ -36,7 +36,17 @@ COLORS = {
 	yellow: "🟡",
 }, GAME = new Proxy(GAMESTATE, handler);
 
-let AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP, BOARD = [[]];
+let AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP, BOARD = [[]], TRANSPOSITION_TABLE = {};
+
+function hash_board(board) {
+	_str = "";
+	for (let row = 0; row < CONFIG.rows; row++) {
+		for (let col = 0; col < CONFIG.columns; col++) {
+			_str += board[row][col];
+		}
+	}
+	return _str;
+}
 
 function can_play(column) {
 	return BOARD[0][column] === EMPTY;
@@ -66,6 +76,21 @@ function evaluate_window(window, piece) {
 	}
 	
 	return _score;
+}
+
+function get_best_move(depth=CONFIG.depth) {
+	if (depth < 1) return undefined;
+	return minimax(BOARD, depth, -Infinity, Infinity, true)[0];
+}
+
+function get_next_row(board, col) {
+	for (let row = CONFIG.rows - 1; row >= 0; row--) {
+		if (board[row][col] === EMPTY) return row;
+	}
+	// // This should work, but the bot just plays in column 0 each time and takes a trivial amount of time, so it
+	// // doesn't seem to be working.
+	// let _row = board.findIndex(row => row[col] !== EMPTY);
+	// return _row !== -1 ? _row : CONFIG.rows - 1;
 }
 
 function get_pos() {
@@ -104,32 +129,77 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 	if (maximizingPlayer) {
 		let _column = 0, _value = -Infinity;
 		for (let col of _validLocations) {
-			let _copy = board.map((a) => a.slice());
+			let _row = get_next_row(board, col);
+			play(board, col, AIP);
 			
-			play(_copy, col, AIP);
+			let _hash = hash_board(board), _newScore = 0;
+			if (TRANSPOSITION_TABLE[_hash]) {
+				_newScore = TRANSPOSITION_TABLE[_hash];
+			} else {
+				_newScore = minimax(board, depth - 1, alpha, beta, false)[1];
+				TRANSPOSITION_TABLE[_hash] = _newScore;
+			}
 			
-			let _newScore = minimax(_copy, depth - 1, alpha, beta, false)[1];
+			board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			
 			if (_newScore > _value) {
 				_value = _newScore;
 				_column = col;
 			}
 			alpha = Math.max(_value, alpha);
 			if (alpha >= beta) break;
+			
+			
+			// let _row = get_next_row(board, col);
+			// play(board, col, AIP);
+			
+			// let _newScore = minimax(board, depth - 1, alpha, beta, false)[1];
+			// board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			
+			// if (_newScore > _value) {
+			// 	_value = _newScore;
+			// 	_column = col;
+			// }
+			// alpha = Math.max(_value, alpha);
+			// if (alpha >= beta) break;
 		}
 		return [ _column, _value ];
 	} else {
 		let _column = 0, _value = Infinity;
 		for (let col of _validLocations) {
-			let _copy = board.map((a) => a.slice());
+			let _row = get_next_row(board, col);
+			play(board, col, PLP);
 			
-			play(_copy, col, PLP);
-			let _newScore = minimax(_copy, depth - 1, alpha, beta, true)[1];
+			let _hash = hash_board(board), _newScore = 0;
+			if (TRANSPOSITION_TABLE[_hash]) {
+				_newScore = TRANSPOSITION_TABLE[_hash];
+			} else {
+				_newScore = minimax(board, depth - 1, alpha, beta, true)[1];
+				TRANSPOSITION_TABLE[_hash] = _newScore;
+			}
+			
+			
+			board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			
 			if (_newScore < _value) {
 				_value = _newScore;
 				_column = col;
 			}
 			beta = Math.min(_value, beta);
 			if (alpha >= beta) break;
+			
+			
+			// let _row = get_next_row(board, col);
+			// play(board, col, PLP);
+			// let _newScore = minimax(board, depth - 1, alpha, beta, true)[1];
+			// board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			
+			// if (_newScore < _value) {
+			// 	_value = _newScore;
+			// 	_column = col;
+			// }
+			// beta = Math.min(_value, beta);
+			// if (alpha >= beta) break;
 		}
 		return [ _column, _value ];
 	}
@@ -138,17 +208,6 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 function new_game() {
 	BOARD = Array(CONFIG.rows).fill(EMPTY).map(() => Array(CONFIG.columns).fill(EMPTY));
 	GAME.history = [];
-}
-
-function get_best_move(depth=CONFIG.depth) {
-	if (depth < 1) return undefined;
-	return minimax(BOARD, depth, -Infinity, Infinity, true)[0];
-}
-
-function get_next_row(board, col) {
-	for (let row = CONFIG.rows - 1; row >= 0; row--) {
-		if (board[row][col] === EMPTY) return row;
-	}
 }
 
 function play(board, col, piece) {
@@ -357,7 +416,7 @@ function winning_move(board, piece) {
 new_game();
 
 module.exports = {
-	can_play, display_board, get_pos, get_valid_locations, new_game, 
-	play_ai, play_human, set, set_ai_piece, set_empty_piece, 
-	set_player_piece, set_pos, get_best_move
+	can_play, display_board, get_best_move, get_pos, get_valid_locations, 
+	new_game, play_ai, play_human, set, set_ai_piece, 
+	set_empty_piece, set_player_piece, set_pos, 
 };
