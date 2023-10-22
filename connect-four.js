@@ -36,17 +36,7 @@ COLORS = {
 	yellow: "🟡",
 }, GAME = new Proxy(GAMESTATE, handler);
 
-let AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP, BOARD = [[]], TRANSPOSITION_TABLE = {};
-
-function hash_board(board) {
-	_str = "";
-	for (let row = 0; row < CONFIG.rows; row++) {
-		for (let col = 0; col < CONFIG.columns; col++) {
-			_str += board[row][col];
-		}
-	}
-	return _str;
-}
+let AIP = COLORS.yellow, EMPTY = COLORS.black, PLP = COLORS.red, TURN = PLP, BOARD = [[]];
 
 function can_play(column) {
 	return BOARD[0][column] === EMPTY;
@@ -68,6 +58,7 @@ function evaluate_window(window, piece) {
 			if (_numConnected === CONFIG.length - _windowSize && _numEmpty === _windowSize) {
 				_score += 3 * _windowSize;
 			}
+			
 			if (_numOpponentConnected === CONFIG.length - _windowSize && _numEmpty === _windowSize) {
 				_score -= 2 * _windowSize;
 			}
@@ -80,17 +71,13 @@ function evaluate_window(window, piece) {
 
 function get_best_move(depth=CONFIG.depth) {
 	if (depth < 1) return undefined;
-	return minimax(BOARD, depth, -Infinity, Infinity, true)[0];
+	return player_minimax(BOARD, depth, -Infinity, Infinity, true)[0];
 }
 
 function get_next_row(board, col) {
 	for (let row = CONFIG.rows - 1; row >= 0; row--) {
 		if (board[row][col] === EMPTY) return row;
 	}
-	// // This should work, but the bot just plays in column 0 each time and takes a trivial amount of time, so it
-	// // doesn't seem to be working.
-	// let _row = board.findIndex(row => row[col] !== EMPTY);
-	// return _row !== -1 ? _row : CONFIG.rows - 1;
 }
 
 function get_pos() {
@@ -98,17 +85,72 @@ function get_pos() {
 }
 
 function get_valid_locations(board) {
-	// Move-order optimization for improved alpha beta pruning. Explores center column outwards.
-	let _validLocations = [], _middle = Math.floor(_validLocations.length / 2);
+	let _validLocations = [];
 	for (let col = 0; col < CONFIG.columns; col++) {
 		if (board[0][col] === EMPTY) _validLocations.push(col);
 	}
 	
-	return _validLocations.sort((a, b) => Math.abs(a - _middle) - Math.abs(b - _middle));
+	return _validLocations;
 }
 
 function is_terminal_node(board) {
 	return get_valid_locations(board).length === 0 || winning_move(board, AIP) || winning_move(board, PLP);
+}
+
+function player_minimax(board, depth, alpha, beta, maximizingPlayer) {
+	let _validLocations = get_valid_locations(board), _isTerminal = is_terminal_node(board);
+	if (depth === 0 || _isTerminal) {
+		if (_isTerminal) {
+			if (winning_move(board, PLP)) {
+				return [ null, 1000000 ];
+			} else if (winning_move(board, AIP)) {
+				return [ null, -1000000 ];
+			} else {
+				return [ null, 0 ];
+			}
+		} else {
+			return [ null, score_position(board, PLP) ];
+		}
+	}
+	if (maximizingPlayer) {
+		let _column = 0, _value = -Infinity;
+		for (let col of _validLocations) {
+			let _newScore = 0, _row = get_next_row(board, col);
+			play(board, col, PLP);
+			
+			_newScore = minimax(board, depth - 1, alpha, beta, false)[1];
+			
+			board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			
+			if (_newScore > _value) {
+				_value = _newScore;
+				_column = col;
+			}
+			
+			alpha = Math.max(_value, alpha);
+			if (alpha >= beta) break;
+		}
+		return [ _column, _value ];
+	} else {
+		let _column = 0, _value = Infinity;
+		for (let col of _validLocations) {
+			let _newScore = 0, _row = get_next_row(board, col);
+			play(board, col, AIP);
+			
+			_newScore = minimax(board, depth - 1, alpha, beta, true)[1];
+			
+			board[_row][col] = EMPTY;
+			
+			if (_newScore < _value) {
+				_value = _newScore;
+				_column = col;
+			}
+			
+			beta = Math.min(_value, beta);
+			if (alpha >= beta) break;
+		}
+		return [ _column, _value ];
+	}
 }
 
 function minimax(board, depth, alpha, beta, maximizingPlayer) {
@@ -129,77 +171,39 @@ function minimax(board, depth, alpha, beta, maximizingPlayer) {
 	if (maximizingPlayer) {
 		let _column = 0, _value = -Infinity;
 		for (let col of _validLocations) {
-			let _row = get_next_row(board, col);
+			let _newScore = 0, _row = get_next_row(board, col);
 			play(board, col, AIP);
 			
-			let _hash = hash_board(board), _newScore = 0;
-			if (TRANSPOSITION_TABLE[_hash]) {
-				_newScore = TRANSPOSITION_TABLE[_hash];
-			} else {
-				_newScore = minimax(board, depth - 1, alpha, beta, false)[1];
-				TRANSPOSITION_TABLE[_hash] = _newScore;
-			}
+			_newScore = minimax(board, depth - 1, alpha, beta, false)[1];
 			
-			board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			board[_row][col] = EMPTY;
 			
 			if (_newScore > _value) {
 				_value = _newScore;
 				_column = col;
 			}
+			
 			alpha = Math.max(_value, alpha);
 			if (alpha >= beta) break;
-			
-			
-			// let _row = get_next_row(board, col);
-			// play(board, col, AIP);
-			
-			// let _newScore = minimax(board, depth - 1, alpha, beta, false)[1];
-			// board[_row][col] = EMPTY; // Small optimization instead of copying the array.
-			
-			// if (_newScore > _value) {
-			// 	_value = _newScore;
-			// 	_column = col;
-			// }
-			// alpha = Math.max(_value, alpha);
-			// if (alpha >= beta) break;
 		}
 		return [ _column, _value ];
 	} else {
 		let _column = 0, _value = Infinity;
 		for (let col of _validLocations) {
-			let _row = get_next_row(board, col);
+			let _newScore = 0, _row = get_next_row(board, col);
 			play(board, col, PLP);
 			
-			let _hash = hash_board(board), _newScore = 0;
-			if (TRANSPOSITION_TABLE[_hash]) {
-				_newScore = TRANSPOSITION_TABLE[_hash];
-			} else {
-				_newScore = minimax(board, depth - 1, alpha, beta, true)[1];
-				TRANSPOSITION_TABLE[_hash] = _newScore;
-			}
+			_newScore = minimax(board, depth - 1, alpha, beta, true)[1];
 			
-			
-			board[_row][col] = EMPTY; // Small optimization instead of copying the array.
+			board[_row][col] = EMPTY;
 			
 			if (_newScore < _value) {
 				_value = _newScore;
 				_column = col;
 			}
+			
 			beta = Math.min(_value, beta);
 			if (alpha >= beta) break;
-			
-			
-			// let _row = get_next_row(board, col);
-			// play(board, col, PLP);
-			// let _newScore = minimax(board, depth - 1, alpha, beta, true)[1];
-			// board[_row][col] = EMPTY; // Small optimization instead of copying the array.
-			
-			// if (_newScore < _value) {
-			// 	_value = _newScore;
-			// 	_column = col;
-			// }
-			// beta = Math.min(_value, beta);
-			// if (alpha >= beta) break;
 		}
 		return [ _column, _value ];
 	}
@@ -297,11 +301,12 @@ function set(prop, value) {
 		case "depth":
 			if (!Number.isInteger(value) || value < 1) return false;
 			break;
-		case "length":
-			if (!Number.isInteger(value) || value < 3 || value < CONFIG.rows || value < CONFIG.columns) return false;
-			break;
+		// case "length":
+		// 	if (!Number.isInteger(value) || value < 3 || value < CONFIG.rows || value < CONFIG.columns) return false;
+		// 	break;
 	}
 	CONFIG[prop] = value;
+	
 	// QOL feature to create a new board with the new settings.
 	if ((BOARD[CONFIG.rows] || [ EMPTY ]).every(c => c === EMPTY)) new_game();
 }
@@ -337,6 +342,7 @@ function winning_move(board, piece) {
 	for (let col = 0; col < CONFIG.columns - CONFIG.length; col++) {
 		for (let row = 0; row < CONFIG.rows; row++) {
 			if (board[row][col] !== piece) continue;
+			
 			// Optimization for most common connect lengths.
 			if (CONFIG.length === 4) {
 				if (board[row][col] === board[row][col + 1] && board[row][col + 1] === board[row][col + 2] && board[row][col + 2] === board[row][col + 3]) return true;
@@ -357,6 +363,7 @@ function winning_move(board, piece) {
 	for (let col = 0; col < CONFIG.columns; col++) {
 		for (let row = 0; row <= CONFIG.rows - CONFIG.length; row++) {
 			if (board[row][col] !== piece) continue;
+			
 			if (CONFIG.length === 4) {
 				if (board[row][col] === board[row + 1][col] && board[row + 1][col] === board[row + 2][col] && board[row + 2][col] === board[row + 3][col]) return true;
 			} else if (CONFIG.length === 5) {
@@ -376,6 +383,7 @@ function winning_move(board, piece) {
 	for (let row = 0; row <= CONFIG.rows - CONFIG.length; row++) {
 		for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 			if (board[row][col] !== piece) continue;
+			
 			if (CONFIG.length === 4) {
 				if (board[row][col] === board[row + 1][col + 1] && board[row + 1][col + 1] === board[row + 2][col + 2] && board[row + 2][col + 2] === board[row + 3][col + 3]) return true;
 			} else if (CONFIG.length === 5) {
@@ -395,6 +403,7 @@ function winning_move(board, piece) {
 	for (let row = CONFIG.length - 1; row < CONFIG.rows; row++) {
 		for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 			if (board[row][col] !== piece) continue;
+			
 			if (CONFIG.length === 4) {
 				if (board[row][col] === board[row - 1][col + 1] && board[row - 1][col + 1] === board[row - 2][col + 2] && board[row - 2][col + 2] === board[row - 3][col + 3]) return true;
 			} else if (CONFIG.length === 5) {
