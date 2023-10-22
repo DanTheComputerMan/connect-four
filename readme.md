@@ -68,8 +68,7 @@ AI.set_empty_piece(COLORS.green);
 // You can change the rows, columns, and even the connect length.
 AI.set("columns", 10);          // Minimum 3
 AI.set("rows", 9);              // Minimum 3
-AI.set("depth", 5);             // Minimum 1, default 9. Change here to not have to specify as an argument.
-AI.set("length", 5);            // Minimum 3
+AI.set("depth", 5);             // Minimum 1, default 9. Change here to not have to specify as an argument later.
 
 // You can setup a specific position. The board is setup by placing a piece in each column, from left-to-right.
 AI.set_pos("4,4,4,4,4,3,3,3,6");
