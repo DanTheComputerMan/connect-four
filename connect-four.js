@@ -251,7 +251,7 @@ function score_position(board, piece) {
 	
 	// Horizontal
 	for (let row = 0; row < CONFIG.rows; row++) {
-		for (let col = 0; col < CONFIG.columns - CONFIG.length; col++) {
+		for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 			let _window = board[row].slice(col, col + CONFIG.length);
 			_score += evaluate_window(_window, piece);
 		}
@@ -339,7 +339,7 @@ function set_pos(position) { // e.g. "2,7,2,1,2,4,5,5,3,5,5,6"
 
 function winning_move(board, piece) {
 	// Horizontal
-	for (let col = 0; col < CONFIG.columns - CONFIG.length; col++) {
+	for (let col = 0; col <= CONFIG.columns - CONFIG.length; col++) {
 		for (let row = 0; row < CONFIG.rows; row++) {
 			if (board[row][col] !== piece) continue;
 			
