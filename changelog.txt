@@ -1,0 +1,55 @@
+	Changes
+	1) Game board isn't a global variable any more, allowing you to have any number of board states in play. Original system:
+			BOARD = create_board();
+			play_move(BOARD, 3);
+		To use them now, run:
+			BOARD = create_board();
+			BOARD = play_move(BOARD, 3);
+	2) Converted array based system to using BigInt bitboards.
+	3) There is no longer a 2d array board. Instead, you call create_board(), then pass that value along for each action.
+		To get the same 2d array, call get_boards_as_array(<BOARD>)
+	4) function can_play(column) was changed to can_play(board, column)
+	5) function display_board was greatly improved. You can also control whether a legend appears on any of the 4 sides.
+	6) function get_best_move(depth?) has changed to get_best_move(board)
+	7) function get_pos() was changed to get_pos(board)
+	8) function get_valid_locations() was changed to get_valid_locations(board)
+	9) function new_game() purpose:
+	 	It now updates all game state variables instead of resetting. Use reset_game() to do this.
+	10) function play(board, column, piece) was changed to play_move(board, column);
+	11) function minimax was converted to a paranoid (modified maxN) search.
+	12) AI now supports any number of players, but this makes it slower. A depth of 6 - 8 is recommended instead of 8 - 10.
+		TODO: At the end, add back in the bitboard original negamax search if only 2 players for speed and performance.
+	
+		Additions
+	1) You can now search by depth, nodes, or time. The first one to match ends the search.
+	2) You can now exit program execution upon encountering an illegal setting (CONFIG.exitOnError). Default is false.
+	3) <BOARD>.players[<playerIndex>] holds the bitboard occupancy of the specified player.
+	4) function get_bitboard_as_array(bitboard) returns the current player's bitboard as a 2D array.
+	5) function get_boards_as_array(board) returns all players boards as a 2D array.
+	6) function get_pgn(board) function returns a pgn string containing the following:
+		date:				Example: "12/23/2021, 1:23:45 PM Western Greenland Summer Time"
+			(new Date).toLocaleString([], { timeZoneName: "long" });
+		length_columns:		Default: 7
+		length_connect:		Default: 4
+		length_rows:		Default: 6
+		player_1:			Default: "🔴"
+		player_2:			Default: "🟡"
+		result:				Example: "1-0"
+		termination:		End time. <HH:MM:SS> Example: "1:45:00"
+		
+		Moves here in pgn format. Example: 
+		1. 🔴4 🟡4 2. 🔴4 🟡2 3. 🔴3 🟡2
+	7) function get_winner(board, getIndex?) returns the player symbol or index of the player that won.
+	8) function reset_game() resets all game state variables.
+	9) Lots of optimizations including check extension, transposition table, kill move, etc. 
+	
+		Removals
+	1) Global GAME object has been removed as it doesn't make sense with unlimited private boards. To check the options, here are the equivalents:
+		GAME.full:					is_draw(board)
+		GAME.over:					is_draw(board) || is_win(board)
+		GAME.victor / GAME.winner:	get_winner(board, getIndex?)
+		GAME.won:					get_winner(board, getIndex?)
+	2) function is_terminal_node was removed. Its functionality was moved to the relevant section(s).
+	3) functions play_ai and play_human are removed. Just use function play_move() now.
+	4) function player_minimax was removed.
+	5) functions set_ai_piece, set_empty_piece, and set_player_piece are removed. To customize them, call set("pieceEmpty", "⚫"); set("piecePlayer1", "🔴"); set("piecePlayer2", "🟡"); // ... etc
