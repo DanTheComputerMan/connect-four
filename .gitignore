@@ -1,2 +1,3 @@
-node_modules
 *.json
+.npmrc
+node_modules
